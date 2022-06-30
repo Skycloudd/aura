@@ -1,13 +1,13 @@
-use crate::interpreter::eval_expr;
 use crate::lexer::lexer;
+use crate::lexer::Span;
 use crate::parser::expr_parser;
 use ariadne::{Color, Fmt, Label, Report, ReportKind, Source};
-use chumsky::prelude::*;
 use chumsky::Parser as _;
 use chumsky::Stream;
 use clap::Parser;
 use std::{error, fs, process};
 
+mod ast;
 mod interpreter;
 mod lexer;
 mod parser;
@@ -16,6 +16,9 @@ mod parser;
 #[clap(version)]
 struct Args {
     filename: String,
+
+    #[clap(short, long)]
+    debug: bool,
 }
 
 fn main() {
@@ -35,22 +38,31 @@ fn main() {
 fn run(args: &Args) -> Result<(), Box<dyn error::Error>> {
     let input = fs::read_to_string(&args.filename)?;
 
-    let (tokens, mut errs) = lexer().parse_recovery(input.as_str());
+    let (tokens, errs) = lexer().parse_recovery(input.as_str());
 
     let parse_errs = if let Some(tokens) = tokens {
-        // dbg!(&tokens);
+        if args.debug {
+            dbg!(&tokens);
+        }
 
         let len = input.chars().count();
         let (ast, parse_errs) =
             expr_parser().parse_recovery(Stream::from_iter(len..len + 1, tokens.into_iter()));
 
-        // dbg!(&ast);
+        if args.debug {
+            dbg!(&ast);
+        }
 
-        if let Some(expr) = ast {
-            match eval_expr(&expr) {
-                Ok(val) => println!("{}", val),
-                Err(e) => errs.push(Simple::custom(e.span, e.msg)),
-            }
+        if let Some(_expr) = ast {
+            // match eval_expr(&expr) {
+            //     Ok(val) => {
+            //         if args.debug {
+            //             print!("Result: ");
+            //         };
+            //         println!("{}", val)
+            //     }
+            //     Err(e) => errs.push(Simple::custom(e.span, e.msg)),
+            // }
         }
 
         parse_errs
@@ -129,4 +141,9 @@ fn run(args: &Args) -> Result<(), Box<dyn error::Error>> {
         });
 
     Ok(())
+}
+
+pub struct Error {
+    pub span: Span,
+    pub msg: String,
 }

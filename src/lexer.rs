@@ -22,20 +22,17 @@ impl fmt::Display for Token {
 }
 
 pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
-    // A parser for numbers
     let num = text::int(10).map(Token::Num);
 
-    // A parser for operators
-    let op = one_of("+-*/")
-        .repeated()
-        .at_least(1)
-        .collect::<String>()
-        .map(Token::Op);
+    let op = just("+")
+        .or(just("-"))
+        .or(just("*"))
+        .or(just("/"))
+        .or(just("%"))
+        .map(|s| Token::Op(s.to_string()));
 
-    // A parser for control characters (delimiters, semicolons, etc.)
     let ctrl = one_of("()").map(|c| Token::Ctrl(c));
 
-    // A single token can be one of the above
     let token = num.or(op).or(ctrl);
 
     let comment = just("#").then(take_until(just('\n'))).padded();
@@ -45,4 +42,5 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
         .padded_by(comment.repeated())
         .padded()
         .repeated()
+        .then_ignore(end())
 }
