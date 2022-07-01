@@ -1,9 +1,31 @@
 use crate::lexer::Spanned;
 
 #[derive(Clone, Debug)]
+pub struct Function {
+    pub name: Spanned<String>,
+    pub args: Vec<Spanned<FunctionArg>>,
+    pub body: Vec<Spanned<Statement>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct FunctionArg {
+    pub name: Spanned<String>,
+    pub argtype: Spanned<String>,
+}
+
+#[derive(Clone, Debug)]
+pub enum Statement {
+    Error,
+    Expr(Spanned<Expr>),
+    Return(Spanned<Expr>),
+    Let(Spanned<String>, Spanned<Expr>),
+}
+
+#[derive(Clone, Debug)]
 pub enum Expr {
     Error,
     Value(Value),
+    Var(String),
     Unary(Spanned<UnaryOp>, Box<Spanned<Self>>),
     Binary(Box<Spanned<Self>>, Spanned<BinaryOp>, Box<Spanned<Self>>),
 }

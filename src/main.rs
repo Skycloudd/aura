@@ -1,6 +1,6 @@
 use crate::lexer::lexer;
 use crate::lexer::Span;
-use crate::parser::expr_parser;
+use crate::parser::parser;
 use ariadne::{Color, Fmt, Label, Report, ReportKind, Source};
 use chumsky::Parser as _;
 use chumsky::Stream;
@@ -47,14 +47,14 @@ fn run(args: &Args) -> Result<(), Box<dyn error::Error>> {
 
         let len = input.chars().count();
         let (ast, parse_errs) =
-            expr_parser().parse_recovery(Stream::from_iter(len..len + 1, tokens.into_iter()));
+            parser().parse_recovery(Stream::from_iter(len..len + 1, tokens.into_iter()));
 
         if args.debug {
             dbg!(&ast);
         }
 
-        if let Some(_expr) = ast {
-            // match eval_expr(&expr) {
+        if let Some(_ast) = ast {
+            // match eval(&_ast) {
             //     Ok(val) => {
             //         if args.debug {
             //             print!("Result: ");
