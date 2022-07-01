@@ -16,6 +16,7 @@ pub struct FunctionArg {
 #[derive(Clone, Debug)]
 pub enum Statement {
     Error,
+    Block(Vec<Spanned<Statement>>),
     Expr(Spanned<Expr>),
     Return(Spanned<Expr>),
     Let(Spanned<String>, Spanned<Expr>),
