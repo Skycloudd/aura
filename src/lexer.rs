@@ -14,6 +14,9 @@ pub enum Token {
     Fn,
     Return,
     Let,
+    Queue,
+    If,
+    Else,
 }
 
 impl fmt::Display for Token {
@@ -27,6 +30,9 @@ impl fmt::Display for Token {
             Token::Fn => write!(f, "fn"),
             Token::Return => write!(f, "return"),
             Token::Let => write!(f, "let"),
+            Token::Queue => write!(f, "queue"),
+            Token::If => write!(f, "if"),
+            Token::Else => write!(f, "else"),
         }
     }
 }
@@ -38,14 +44,23 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
         "fn" => Token::Fn,
         "return" => Token::Return,
         "let" => Token::Let,
+        "queue" => Token::Queue,
+        "if" => Token::If,
+        "else" => Token::Else,
         _ => Token::Ident(ident),
     });
 
-    let op = just("+")
+    let op = just("==")
+        .or(just("!="))
+        .or(just("<="))
+        .or(just(">="))
+        .or(just("+"))
         .or(just("-"))
         .or(just("*"))
         .or(just("/"))
         .or(just("%"))
+        .or(just("<"))
+        .or(just(">"))
         .or(just("="))
         .map(|s| Token::Op(s.to_string()));
 
@@ -64,7 +79,7 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
         .or(ident)
         .recover_with(skip_then_retry_until([]));
 
-    let comment = just("#").then(take_until(just('\n'))).padded();
+    let comment = just("//").then(take_until(just('\n'))).padded();
 
     token
         .map_with_span(|tok, span| (tok, span))

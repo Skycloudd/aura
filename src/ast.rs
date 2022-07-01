@@ -18,8 +18,12 @@ pub enum Statement {
     Error,
     Block(Vec<Spanned<Statement>>),
     Expr(Spanned<Expr>),
-    Return(Spanned<Expr>),
+    Return(Option<Spanned<Expr>>),
     Let(Spanned<String>, Spanned<Expr>),
+    Queue(Spanned<Expr>),
+    If(Spanned<Expr>, Box<Spanned<Statement>>),
+    Else(Box<Spanned<Statement>>),
+    IfElse(Box<Spanned<Statement>>, Box<Option<Spanned<Statement>>>),
 }
 
 #[derive(Clone, Debug)]
@@ -29,6 +33,7 @@ pub enum Expr {
     Var(String),
     Unary(Spanned<UnaryOp>, Box<Spanned<Self>>),
     Binary(Box<Spanned<Self>>, Spanned<BinaryOp>, Box<Spanned<Self>>),
+    Call(Box<Spanned<Self>>, Spanned<Vec<Spanned<Self>>>),
 }
 
 #[derive(Clone, Debug)]
@@ -44,6 +49,12 @@ pub enum BinaryOp {
     Mul,
     Div,
     Mod,
+    Eq,
+    Neq,
+    Lt,
+    Lte,
+    Gt,
+    Gte,
 }
 
 #[derive(Clone, Debug)]
