@@ -13,7 +13,6 @@ pub enum Token {
 
     Fn,
     Return,
-    Let,
     Queue,
     If,
     Else,
@@ -29,7 +28,6 @@ impl fmt::Display for Token {
 
             Token::Fn => write!(f, "fn"),
             Token::Return => write!(f, "return"),
-            Token::Let => write!(f, "let"),
             Token::Queue => write!(f, "queue"),
             Token::If => write!(f, "if"),
             Token::Else => write!(f, "else"),
@@ -43,7 +41,6 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
     let ident = text::ident().map(|ident: String| match ident.as_str() {
         "fn" => Token::Fn,
         "return" => Token::Return,
-        "let" => Token::Let,
         "queue" => Token::Queue,
         "if" => Token::If,
         "else" => Token::Else,
@@ -54,6 +51,7 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
         .or(just("!="))
         .or(just("<="))
         .or(just(">="))
+        .or(just("->"))
         .or(just("+"))
         .or(just("-"))
         .or(just("*"))

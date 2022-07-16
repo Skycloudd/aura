@@ -27,17 +27,16 @@ pub fn function_parser() -> impl Parser<Token, Spanned<Function>, Error = Simple
     let functionarg = ident
         .clone()
         .map_with_span(|name, span| (name, span))
-        .then_ignore(just(Token::Ctrl(':')))
-        .then(ident.clone().map_with_span(|name, span| (name, span)))
-        .map_with_span(|(name, argtype), span| (FunctionArg { name, argtype }, span));
+        .map_with_span(|name, span| (FunctionArg { name }, span));
 
     let functionargs = functionarg
         .separated_by(just(Token::Ctrl(',')))
         .allow_trailing()
         .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')')))
-        .labelled("function args");
+        .labelled("function args")
+        .map_with_span(|args, span| (args, span));
 
-    let body = statement_parser().repeated();
+    let body = statement_parser();
 
     let function = just(Token::Fn)
         .ignore_then(
@@ -46,15 +45,7 @@ pub fn function_parser() -> impl Parser<Token, Spanned<Function>, Error = Simple
                 .labelled("function name"),
         )
         .then(functionargs)
-        .then(
-            body.delimited_by(just(Token::Ctrl('{')), just(Token::Ctrl('}')))
-                .recover_with(nested_delimiters(
-                    Token::Ctrl('{'),
-                    Token::Ctrl('}'),
-                    [(Token::Ctrl('('), Token::Ctrl(')'))],
-                    |span| vec![(Statement::Error, span)],
-                )),
-        )
+        .then(body)
         .map_with_span(|((name, args), body), span| (Function { name, args, body }, span));
 
     function
@@ -189,11 +180,11 @@ pub fn statement_parser() -> impl Parser<Token, Spanned<Statement>, Error = Simp
             .then_ignore(just(Token::Ctrl(';')))
             .map_with_span(|(stmt, span), _| (stmt, span));
 
-        let let_ = just(Token::Let)
-            .ignore_then(ident.clone())
+        let assign = ident
+            .clone()
             .then_ignore(just(Token::Op("=".to_string())))
             .then(expression.clone())
-            .map_with_span(|(name, expr), span| (Statement::Let(name, expr), span))
+            .map_with_span(|(name, expr), span| (Statement::Assign(name, expr), span))
             .then_ignore(just(Token::Ctrl(';')))
             .map_with_span(|(stmt, span), _| (stmt, span));
 
@@ -230,7 +221,7 @@ pub fn statement_parser() -> impl Parser<Token, Spanned<Statement>, Error = Simp
                 });
 
         expr.or(return_)
-            .or(let_)
+            .or(assign)
             .or(queue)
             .or(block)
             .or(if_else)

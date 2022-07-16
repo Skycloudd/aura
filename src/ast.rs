@@ -3,14 +3,13 @@ use crate::lexer::Spanned;
 #[derive(Clone, Debug)]
 pub struct Function {
     pub name: Spanned<String>,
-    pub args: Vec<Spanned<FunctionArg>>,
-    pub body: Vec<Spanned<Statement>>,
+    pub args: Spanned<Vec<Spanned<FunctionArg>>>,
+    pub body: Spanned<Statement>,
 }
 
 #[derive(Clone, Debug)]
 pub struct FunctionArg {
     pub name: Spanned<String>,
-    pub argtype: Spanned<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -19,7 +18,7 @@ pub enum Statement {
     Block(Vec<Spanned<Statement>>),
     Expr(Spanned<Expr>),
     Return(Option<Spanned<Expr>>),
-    Let(Spanned<String>, Spanned<Expr>),
+    Assign(Spanned<String>, Spanned<Expr>),
     Queue(Spanned<Expr>),
     If(Spanned<Expr>, Box<Spanned<Statement>>),
     Else(Box<Spanned<Statement>>),
