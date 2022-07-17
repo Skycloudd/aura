@@ -137,7 +137,7 @@ fn run(args: &Args) -> Result<(), Box<dyn error::Error>> {
                 ),
             };
 
-            report.finish().print(Source::from(&input)).unwrap();
+            report.finish().eprint(Source::from(&input)).unwrap();
         });
 
     Ok(())

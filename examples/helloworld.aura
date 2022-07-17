@@ -5,8 +5,8 @@ fn mul(a, b)
     return a * b;
 
 fn test_func(a, b, c)
+    # perform some random computation to test things
     return mul(add(a, b), c);
-
 
 fn main() {
     a = 1;
