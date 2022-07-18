@@ -59,7 +59,7 @@ fn run(args: &Args) -> Result<(), Box<dyn error::Error>> {
             match compile(&ast) {
                 Ok(val) => {
                     if args.debug {
-                        eprintln!("Compilation result: {:?}", val);
+                        dbg!(val);
                     }
                 }
                 Err(compile_errors) => {
