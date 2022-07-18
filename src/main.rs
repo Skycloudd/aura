@@ -1,14 +1,16 @@
+use crate::compiler::compile;
 use crate::lexer::lexer;
 use crate::lexer::Span;
 use crate::parser::parser;
 use ariadne::{Color, Fmt, Label, Report, ReportKind, Source};
+use chumsky::prelude::*;
 use chumsky::Parser as _;
 use chumsky::Stream;
 use clap::Parser;
 use std::{error, fs, process};
 
 mod ast;
-mod interpreter;
+mod compiler;
 mod lexer;
 mod parser;
 
@@ -38,7 +40,7 @@ fn main() {
 fn run(args: &Args) -> Result<(), Box<dyn error::Error>> {
     let input = fs::read_to_string(&args.filename)?;
 
-    let (tokens, errs) = lexer().parse_recovery(input.as_str());
+    let (tokens, mut errs) = lexer().parse_recovery(input.as_str());
 
     let parse_errs = if let Some(tokens) = tokens {
         if args.debug {
@@ -53,16 +55,19 @@ fn run(args: &Args) -> Result<(), Box<dyn error::Error>> {
             dbg!(&ast);
         }
 
-        if let Some(_ast) = ast {
-            // match eval(&_ast) {
-            //     Ok(val) => {
-            //         if args.debug {
-            //             print!("Result: ");
-            //         };
-            //         println!("{}", val)
-            //     }
-            //     Err(e) => errs.push(Simple::custom(e.span, e.msg)),
-            // }
+        if let Some(ast) = ast {
+            match compile(&ast) {
+                Ok(val) => {
+                    if args.debug {
+                        eprintln!("Compilation result: {:?}", val);
+                    }
+                }
+                Err(compile_errors) => {
+                    for e in compile_errors {
+                        errs.push(Simple::custom(e.span, e.msg))
+                    }
+                }
+            }
         }
 
         parse_errs
