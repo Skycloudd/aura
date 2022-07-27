@@ -4,9 +4,13 @@ fn add(a, b)
 fn mul(a, b)
     return a * b;
 
-fn test_func(a, b, c)
+fn test_func(a, b, c) {
+    myvar_t = true;
+    myvar_f = false;
+
     # perform some random computation to test things
     return mul(add(a, b), c);
+}
 
 fn main() {
     a = 1;
@@ -14,4 +18,6 @@ fn main() {
     c = 3;
 
     result = test_func(a, b, c);
+
+    print result;
 }

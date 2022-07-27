@@ -1,21 +1,16 @@
+use crate::ast::Ast;
 use crate::ast::{BinaryOp, Expr, Function, FunctionArg, Statement, UnaryOp, Value};
 use crate::lexer::{Spanned, Token};
 use crate::Span;
 use chumsky::prelude::*;
-use std::fmt;
 
-impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Int(x) => write!(f, "{}", x),
-        }
-    }
-}
-
-pub fn parser() -> impl Parser<Token, Vec<Spanned<Function>>, Error = Simple<Token>> + Clone {
+pub fn parser() -> impl Parser<Token, Ast, Error = Simple<Token>> + Clone {
     let function = function_parser();
 
-    function.repeated().then_ignore(end())
+    function
+        .repeated()
+        .then_ignore(end())
+        .map_with_span(|func, span| (func, span))
 }
 
 pub fn function_parser() -> impl Parser<Token, Spanned<Function>, Error = Simple<Token>> + Clone {
@@ -55,6 +50,8 @@ pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>>
     recursive(|expr| {
         let val = select! {
             Token::Num(n) => Expr::Value(Value::Int(n.parse().unwrap())),
+            Token::True => Expr::Value(Value::Bool(true)),
+            Token::False => Expr::Value(Value::Bool(false)),
         }
         .labelled("value");
 
@@ -69,7 +66,10 @@ pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>>
             .recover_with(nested_delimiters(
                 Token::Ctrl('('),
                 Token::Ctrl(')'),
-                [(Token::Ctrl('{'), Token::Ctrl('}'))],
+                [
+                    (Token::Ctrl('{'), Token::Ctrl('}')),
+                    (Token::Ctrl('['), Token::Ctrl(']')),
+                ],
                 |span| (Expr::Error, span),
             ));
 
@@ -99,7 +99,6 @@ pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>>
         let op = just(Token::Op("*".to_string()))
             .to(BinaryOp::Mul)
             .or(just(Token::Op("/".to_string())).to(BinaryOp::Div))
-            .or(just(Token::Op("%".to_string())).to(BinaryOp::Mod))
             .map_with_span(|op, span| (op, span));
 
         let product =
@@ -174,9 +173,9 @@ pub fn statement_parser() -> impl Parser<Token, Spanned<Statement>, Error = Simp
             .then_ignore(just(Token::Ctrl(';')))
             .map_with_span(|(stmt, span), _| (stmt, span));
 
-        let queue = just(Token::Queue)
+        let print = just(Token::Print)
             .ignore_then(expression.clone())
-            .map_with_span(|expr, span| (Statement::Queue(expr), span))
+            .map_with_span(|expr, span| (Statement::Print(expr), span))
             .then_ignore(just(Token::Ctrl(';')))
             .map_with_span(|(stmt, span), _| (stmt, span));
 
@@ -195,7 +194,10 @@ pub fn statement_parser() -> impl Parser<Token, Spanned<Statement>, Error = Simp
             .recover_with(nested_delimiters(
                 Token::Ctrl('{'),
                 Token::Ctrl('}'),
-                [(Token::Ctrl('('), Token::Ctrl(')'))],
+                [
+                    (Token::Ctrl('{'), Token::Ctrl('}')),
+                    (Token::Ctrl('['), Token::Ctrl(']')),
+                ],
                 |span| vec![(Statement::Error, span)],
             ))
             .map_with_span(|stmts, span| (Statement::Block(stmts), span))
@@ -221,8 +223,8 @@ pub fn statement_parser() -> impl Parser<Token, Spanned<Statement>, Error = Simp
                 });
 
         expr.or(return_)
+            .or(print)
             .or(assign)
-            .or(queue)
             .or(block)
             .or(if_else)
             .or(if_)

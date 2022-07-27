@@ -1,4 +1,7 @@
 use crate::lexer::Spanned;
+use std::fmt;
+
+pub type Ast = Spanned<Vec<Spanned<Function>>>;
 
 #[derive(Clone, Debug)]
 pub struct Function {
@@ -19,7 +22,7 @@ pub enum Statement {
     Expr(Spanned<Expr>),
     Return(Option<Spanned<Expr>>),
     Assign(Spanned<String>, Spanned<Expr>),
-    Queue(Spanned<Expr>),
+    Print(Spanned<Expr>),
     If(Spanned<Expr>, Box<Spanned<Statement>>),
     Else(Box<Spanned<Statement>>),
     IfElse(Box<Spanned<Statement>>, Box<Option<Spanned<Statement>>>),
@@ -47,7 +50,6 @@ pub enum BinaryOp {
     Sub,
     Mul,
     Div,
-    Mod,
     Eq,
     Neq,
     Lt,
@@ -59,4 +61,14 @@ pub enum BinaryOp {
 #[derive(Clone, Debug)]
 pub enum Value {
     Int(i32),
+    Bool(bool),
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Int(x) => write!(f, "{}", x),
+            Self::Bool(x) => write!(f, "{}", x),
+        }
+    }
 }

@@ -13,9 +13,11 @@ pub enum Token {
 
     Fn,
     Return,
-    Queue,
     If,
     Else,
+    True,
+    False,
+    Print,
 }
 
 impl fmt::Display for Token {
@@ -28,9 +30,11 @@ impl fmt::Display for Token {
 
             Token::Fn => write!(f, "fn"),
             Token::Return => write!(f, "return"),
-            Token::Queue => write!(f, "queue"),
             Token::If => write!(f, "if"),
             Token::Else => write!(f, "else"),
+            Token::True => write!(f, "true"),
+            Token::False => write!(f, "false"),
+            Token::Print => write!(f, "print"),
         }
     }
 }
@@ -41,9 +45,11 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
     let ident = text::ident().map(|ident: String| match ident.as_str() {
         "fn" => Token::Fn,
         "return" => Token::Return,
-        "queue" => Token::Queue,
         "if" => Token::If,
         "else" => Token::Else,
+        "true" => Token::True,
+        "false" => Token::False,
+        "print" => Token::Print,
         _ => Token::Ident(ident),
     });
 
@@ -56,7 +62,6 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
         .or(just("-"))
         .or(just("*"))
         .or(just("/"))
-        .or(just("%"))
         .or(just("<"))
         .or(just(">"))
         .or(just("="))
@@ -66,10 +71,12 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
         .or(just(')'))
         .or(just('{'))
         .or(just('}'))
+        .or(just('['))
+        .or(just(']'))
         .or(just(','))
         .or(just(';'))
         .or(just(':'))
-        .map(|c| Token::Ctrl(c));
+        .map(Token::Ctrl);
 
     let token = num
         .or(op)

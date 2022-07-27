@@ -1,4 +1,4 @@
-use crate::compiler::compile;
+use crate::interpreter::interpret;
 use crate::lexer::lexer;
 use crate::lexer::Span;
 use crate::parser::parser;
@@ -10,7 +10,7 @@ use clap::Parser;
 use std::{error, fs, process};
 
 mod ast;
-mod compiler;
+mod interpreter;
 mod lexer;
 mod parser;
 
@@ -56,7 +56,7 @@ fn run(args: &Args) -> Result<(), Box<dyn error::Error>> {
         }
 
         if let Some(ast) = ast {
-            match compile(&ast) {
+            match interpret(&ast) {
                 Ok(val) => {
                     if args.debug {
                         dbg!(val);
