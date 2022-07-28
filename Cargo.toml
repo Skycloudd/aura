@@ -9,5 +9,5 @@ edition = "2021"
 ariadne = "0.1.5"
 bigdecimal = "0.3.0"
 chumsky = "0.8.0"
-clap = { version = "3.2.6", features = ["derive"] }
+clap = { version = "3.2.15", features = ["derive"] }
 num-bigint = "0.4.3"
