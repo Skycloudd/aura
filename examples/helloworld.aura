@@ -28,8 +28,11 @@ fn main() {
         print true;
     else
         print false;
+
+    print aaaaaa();
 }
 
 fn aaaaaa() {
-    a = b = 34 + 35;
+    result = a = 0.1 + 0.2;
+    return result;
 }
