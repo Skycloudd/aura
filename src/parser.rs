@@ -152,14 +152,25 @@ pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>>
                 (Expr::Binary(Box::new(a), op, Box::new(b)), span)
             });
 
-        equality
+        let op = just(Token::Op("=".to_string()))
+            .to(BinaryOp::Assign)
+            .map_with_span(|op, span: Span| (op, span));
+
+        let assign = equality
+            .clone()
+            .then(op)
+            .repeated()
+            .then(equality)
+            .foldr(|(a, op), b| {
+                let span = a.1.start..b.1.end;
+                (Expr::Binary(Box::new(a), op, Box::new(b)), span)
+            });
+
+        assign
     })
 }
 
 pub fn statement_parser() -> impl Parser<Token, Spanned<Statement>, Error = Simple<Token>> + Clone {
-    let ident = select! { Token::Ident(ident) => ident.clone() }
-        .map_with_span(|ident, span| (ident, span))
-        .labelled("identifier");
     let expression = expr_parser().labelled("expression");
 
     recursive(|statement| {
@@ -177,14 +188,6 @@ pub fn statement_parser() -> impl Parser<Token, Spanned<Statement>, Error = Simp
         let print = just(Token::Print)
             .ignore_then(expression.clone())
             .map_with_span(|expr, span| (Statement::Print(expr), span))
-            .then_ignore(just(Token::Ctrl(';')))
-            .map_with_span(|(stmt, span), _| (stmt, span));
-
-        let assign = ident
-            .clone()
-            .then_ignore(just(Token::Op("=".to_string())))
-            .then(expression.clone())
-            .map_with_span(|(name, expr), span| (Statement::Assign(name, expr), span))
             .then_ignore(just(Token::Ctrl(';')))
             .map_with_span(|(stmt, span), _| (stmt, span));
 
@@ -223,11 +226,6 @@ pub fn statement_parser() -> impl Parser<Token, Spanned<Statement>, Error = Simp
                     )
                 });
 
-        expr.or(return_)
-            .or(print)
-            .or(assign)
-            .or(block)
-            .or(if_else)
-            .or(if_)
+        expr.or(return_).or(print).or(block).or(if_else).or(if_)
     })
 }

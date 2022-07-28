@@ -23,7 +23,6 @@ pub enum Statement {
     Block(Vec<Spanned<Statement>>),
     Expr(Spanned<Expr>),
     Return(Option<Spanned<Expr>>),
-    Assign(Spanned<String>, Spanned<Expr>),
     Print(Spanned<Expr>),
     If(Spanned<Expr>, Box<Spanned<Statement>>),
     Else(Box<Spanned<Statement>>),
@@ -58,6 +57,7 @@ pub enum BinaryOp {
     Lte,
     Gt,
     Gte,
+    Assign,
 }
 
 #[derive(Clone, Debug)]
