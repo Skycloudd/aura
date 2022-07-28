@@ -45,7 +45,7 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
     let int = text::int(10).map(Token::Int);
 
     let decimal = text::int(10)
-        .chain::<char, _, _>(just('.').chain(text::digits(10)).or_not().flatten())
+        .chain::<char, _, _>(just('.').chain(text::digits(10)))
         .collect::<String>()
         .map(Token::Decimal);
 
