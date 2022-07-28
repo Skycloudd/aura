@@ -4,20 +4,28 @@ fn add(a, b)
 fn mul(a, b)
     return a * b;
 
-fn test_func(a, b, c) {
-    myvar_t = true;
-    myvar_f = false;
-
-    # perform some random computation to test things
-    return mul(add(a, b), c);
+fn test_func(x, a, b, c) {
+    if (x == true) {
+        val = mul(add(a, b), c);
+        return val;
+    } else {
+        val = add(mul(a, b), c);
+        return val;
+    }
 }
 
 fn main() {
+    x = true;
     a = 1;
     b = 2;
     c = 3;
 
-    result = test_func(a, b, c);
+    result = test_func(x, a, b, c);
 
     print result;
+
+    if result == 9
+        print true;
+    else
+        print false;
 }

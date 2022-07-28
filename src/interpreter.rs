@@ -2,11 +2,14 @@ use crate::ast::Ast;
 use crate::ast::Function;
 use crate::lexer::Spanned;
 use crate::Error;
+use bigdecimal::BigDecimal;
+use num_bigint::BigInt;
 use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum AuraValue {
-    Int(i32),
+    Int(BigInt),
+    Decimal(BigDecimal),
     Bool(bool),
 }
 
@@ -48,5 +51,5 @@ fn eval_function(
     ast: &Ast,
     func: &Spanned<Function>,
 ) -> Result<AuraValue, Vec<Error>> {
-    todo!("eval_function")
+    Ok(AuraValue::Int(BigInt::from(0)))
 }

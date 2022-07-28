@@ -7,7 +7,8 @@ pub type Spanned<T> = (T, Span);
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Token {
     Ident(String),
-    Num(String),
+    Int(String),
+    Decimal(String),
     Op(String),
     Ctrl(char),
 
@@ -24,7 +25,8 @@ impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Token::Ident(s) => write!(f, "{}", s),
-            Token::Num(n) => write!(f, "{}", n),
+            Token::Int(n) => write!(f, "{}", n),
+            Token::Decimal(n) => write!(f, "{}", n),
             Token::Op(s) => write!(f, "{}", s),
             Token::Ctrl(c) => write!(f, "{}", c),
 
@@ -40,7 +42,12 @@ impl fmt::Display for Token {
 }
 
 pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
-    let num = text::int(10).map(Token::Num);
+    let int = text::int(10).map(Token::Int);
+
+    let decimal = text::int(10)
+        .chain::<char, _, _>(just('.').chain(text::digits(10)).or_not().flatten())
+        .collect::<String>()
+        .map(Token::Decimal);
 
     let ident = text::ident().map(|ident: String| match ident.as_str() {
         "fn" => Token::Fn,
@@ -78,7 +85,8 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
         .or(just(':'))
         .map(Token::Ctrl);
 
-    let token = num
+    let token = decimal
+        .or(int)
         .or(op)
         .or(ctrl)
         .or(ident)

@@ -49,7 +49,8 @@ pub fn function_parser() -> impl Parser<Token, Spanned<Function>, Error = Simple
 pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + Clone {
     recursive(|expr| {
         let val = select! {
-            Token::Num(n) => Expr::Value(Value::Int(n.parse().unwrap())),
+            Token::Int(n) => Expr::Value(Value::Int(n.parse().unwrap())),
+            Token::Decimal(n) => Expr::Value(Value::Decimal(n.parse().unwrap())),
             Token::True => Expr::Value(Value::Bool(true)),
             Token::False => Expr::Value(Value::Bool(false)),
         }

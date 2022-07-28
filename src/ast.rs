@@ -1,4 +1,6 @@
 use crate::lexer::Spanned;
+use bigdecimal::BigDecimal;
+use num_bigint::BigInt;
 use std::fmt;
 
 pub type Ast = Spanned<Vec<Spanned<Function>>>;
@@ -60,7 +62,8 @@ pub enum BinaryOp {
 
 #[derive(Clone, Debug)]
 pub enum Value {
-    Int(i32),
+    Int(BigInt),
+    Decimal(BigDecimal),
     Bool(bool),
 }
 
@@ -68,6 +71,7 @@ impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Int(x) => write!(f, "{}", x),
+            Self::Decimal(x) => write!(f, "{}", x),
             Self::Bool(x) => write!(f, "{}", x),
         }
     }
