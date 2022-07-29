@@ -100,6 +100,7 @@ pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>>
         let op = just(Token::Op("*".to_string()))
             .to(BinaryOp::Mul)
             .or(just(Token::Op("/".to_string())).to(BinaryOp::Div))
+            .or(just(Token::Op("%".to_string())).to(BinaryOp::Mod))
             .map_with_span(|op, span| (op, span));
 
         let product =
