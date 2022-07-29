@@ -62,11 +62,7 @@ fn run(args: &Args) -> Result<(), Box<dyn error::Error>> {
                         dbg!(val);
                     }
                 }
-                Err(compile_errors) => {
-                    for e in compile_errors {
-                        errs.push(Simple::custom(e.span, e.msg))
-                    }
-                }
+                Err(e) => errs.push(Simple::custom(e.span, e.msg)),
             }
         }
 
