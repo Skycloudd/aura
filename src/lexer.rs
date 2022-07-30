@@ -67,7 +67,6 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
         .or(just("!="))
         .or(just("<="))
         .or(just(">="))
-        .or(just("->"))
         .or(just("+"))
         .or(just("-"))
         .or(just("*"))
