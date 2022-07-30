@@ -29,6 +29,21 @@ pub enum Statement {
     IfElse(Box<Spanned<Statement>>, Box<Option<Spanned<Statement>>>),
 }
 
+impl Statement {
+    pub fn get_type_str(&self) -> &'static str {
+        match self {
+            Statement::Error => "error",
+            Statement::Block(_) => "block",
+            Statement::Expr(_) => "expression",
+            Statement::Return(_) => "return statement",
+            Statement::Print(_) => "print statement",
+            Statement::If(_, _) => "if statement",
+            Statement::Else(_) => "else statement",
+            Statement::IfElse(_, _) => "if else statement",
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum Expr {
     Error,
@@ -37,6 +52,19 @@ pub enum Expr {
     Unary(Spanned<UnaryOp>, Box<Spanned<Self>>),
     Binary(Box<Spanned<Self>>, Spanned<BinaryOp>, Box<Spanned<Self>>),
     Call(Box<Spanned<Self>>, Spanned<Vec<Spanned<Self>>>),
+}
+
+impl Expr {
+    pub fn get_type_str(&self) -> &'static str {
+        match self {
+            Expr::Error => "error",
+            Expr::Value(_) => "value",
+            Expr::Var(_) => "variable",
+            Expr::Unary(_, _) => "unary expression",
+            Expr::Binary(_, _, _) => "binary expression",
+            Expr::Call(_, _) => "function call",
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
