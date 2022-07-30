@@ -53,6 +53,7 @@ pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>>
             Token::Decimal(n) => Expr::Value(Value::Decimal(n.parse().unwrap())),
             Token::True => Expr::Value(Value::Bool(true)),
             Token::False => Expr::Value(Value::Bool(false)),
+            Token::Null => Expr::Value(Value::Null),
         }
         .labelled("value");
 

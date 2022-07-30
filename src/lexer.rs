@@ -19,6 +19,7 @@ pub enum Token {
     True,
     False,
     Print,
+    Null,
 }
 
 impl fmt::Display for Token {
@@ -37,6 +38,7 @@ impl fmt::Display for Token {
             Token::True => write!(f, "true"),
             Token::False => write!(f, "false"),
             Token::Print => write!(f, "print"),
+            Token::Null => write!(f, "null"),
         }
     }
 }
@@ -57,6 +59,7 @@ pub fn lexer() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> {
         "true" => Token::True,
         "false" => Token::False,
         "print" => Token::Print,
+        "null" => Token::Null,
         _ => Token::Ident(ident),
     });
 

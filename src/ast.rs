@@ -83,6 +83,7 @@ pub enum Value {
     Int(BigInt),
     Decimal(BigDecimal),
     Bool(bool),
+    Null,
 }
 
 impl fmt::Display for Value {
@@ -91,6 +92,7 @@ impl fmt::Display for Value {
             Self::Int(x) => write!(f, "{}", x),
             Self::Decimal(x) => write!(f, "{}", x),
             Self::Bool(x) => write!(f, "{}", x),
+            Self::Null => write!(f, "null"),
         }
     }
 }

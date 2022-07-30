@@ -186,6 +186,7 @@ fn eval_expression(
             ast::Value::Int(i) => Ok(AuraValue::Int(i)),
             ast::Value::Decimal(d) => Ok(AuraValue::Decimal(d)),
             ast::Value::Bool(b) => Ok(AuraValue::Bool(b)),
+            ast::Value::Null => Ok(AuraValue::Null),
         },
         ast::Expr::Var(v) => {
             let var = environment.get_variable(&v).ok_or_else(|| Error {
