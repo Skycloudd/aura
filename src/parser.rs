@@ -227,6 +227,6 @@ pub fn statement_parser() -> impl Parser<Token, Spanned<Statement>, Error = Simp
                     )
                 });
 
-        expr.or(return_).or(print).or(block).or(if_else).or(if_)
+        expr.or(return_).or(print).or(block).or(if_else)
     })
 }
