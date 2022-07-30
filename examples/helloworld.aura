@@ -29,10 +29,5 @@ fn main() {
     else
         print false;
 
-    print aaaaaa();
-}
-
-fn aaaaaa() {
-    result = a = 0.1 + 0.2;
-    return result;
+    print 0.1 + 0.2;
 }
