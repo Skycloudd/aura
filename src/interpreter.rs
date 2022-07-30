@@ -173,6 +173,9 @@ fn eval_statement(
                 }),
             }
         }
+        ast::Statement::While(_while_stmt) => {
+            todo!()
+        }
     }
 }
 
@@ -191,7 +194,7 @@ fn eval_expression(
         ast::Expr::Var(v) => {
             let var = environment.get_variable(&v).ok_or_else(|| Error {
                 span: expr.1.clone(),
-                msg: format!("Variable {} is not defined", &v),
+                msg: format!("Variable '{}' is not defined here", &v),
             })?;
 
             Ok(var.clone())
@@ -419,13 +422,13 @@ fn eval_expression(
                 }
                 e => Err(Error {
                     span: expr.1.clone(),
-                    msg: format!("Cannot assign to {}", e.get_type_str()),
+                    msg: format!("Cannot assign to '{}'", e.get_type_str()),
                 }),
             },
         },
         ast::Expr::Call(e, params) => match &e.as_ref().0 {
             ast::Expr::Var(ident) => {
-                let func = environment.get_function(&ident).ok_or_else(|| Error {
+                let func = environment.get_function(ident).ok_or_else(|| Error {
                     span: expr.1.clone(),
                     msg: format!("Function '{}' not found", ident),
                 })?;
@@ -457,7 +460,7 @@ fn eval_expression(
             }
             e => Err(Error {
                 span: expr.1.clone(),
-                msg: format!("Cannot call {}", e.get_type_str()),
+                msg: format!("Cannot call '{}'", e.get_type_str()),
             }),
         },
     }

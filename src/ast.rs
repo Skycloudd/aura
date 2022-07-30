@@ -25,12 +25,19 @@ pub enum Statement {
     Return(Option<Spanned<Expr>>),
     Print(Spanned<Expr>),
     IfElse(Box<IfElseStatement>),
+    While(Box<WhileStatement>),
 }
 
 #[derive(Clone, Debug)]
 pub struct IfElseStatement {
     pub if_stmt: Spanned<(Spanned<Expr>, Spanned<Statement>)>,
     pub else_stmt: Option<Spanned<Spanned<Statement>>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct WhileStatement {
+    pub cond: Spanned<Expr>,
+    pub body: Spanned<Statement>,
 }
 
 #[derive(Clone, Debug)]

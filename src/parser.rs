@@ -1,4 +1,4 @@
-use crate::ast::{Ast, IfElseStatement};
+use crate::ast::{Ast, IfElseStatement, WhileStatement};
 use crate::ast::{BinaryOp, Expr, Function, FunctionArg, Statement, UnaryOp, Value};
 use crate::lexer::{Spanned, Token};
 use crate::Span;
@@ -15,12 +15,11 @@ pub fn parser() -> impl Parser<Token, Ast, Error = Simple<Token>> + Clone {
 
 pub fn function_parser() -> impl Parser<Token, Spanned<Function>, Error = Simple<Token>> + Clone {
     let ident = filter_map(|span, tok| match tok {
-        Token::Ident(ident) => Ok(ident.clone()),
+        Token::Ident(ident) => Ok(ident),
         _ => Err(Simple::expected_input_found(span, Vec::new(), Some(tok))),
     });
 
     let functionarg = ident
-        .clone()
         .map_with_span(|name, span| (name, span))
         .map_with_span(|name, span| (FunctionArg { name }, span));
 
@@ -33,7 +32,7 @@ pub fn function_parser() -> impl Parser<Token, Spanned<Function>, Error = Simple
 
     let body = statement_parser();
 
-    let function = just(Token::Fn)
+    just(Token::Fn)
         .ignore_then(
             ident
                 .map_with_span(|ident, span| (ident, span))
@@ -41,9 +40,7 @@ pub fn function_parser() -> impl Parser<Token, Spanned<Function>, Error = Simple
         )
         .then(functionargs)
         .then(body)
-        .map_with_span(|((name, args), body), span| (Function { name, args, body }, span));
-
-    function
+        .map_with_span(|((name, args), body), span| (Function { name, args, body }, span))
 }
 
 pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + Clone {
@@ -57,7 +54,7 @@ pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>>
         }
         .labelled("value");
 
-        let ident = select! { Token::Ident(ident) => ident.clone() }.labelled("identifier");
+        let ident = select! { Token::Ident(ident) => ident }.labelled("identifier");
 
         let atom = val
             .map_with_span(|expr, span: Span| (expr, span))
@@ -160,7 +157,7 @@ pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>>
             .to(BinaryOp::Assign)
             .map_with_span(|op, span: Span| (op, span));
 
-        let assign = equality
+        equality
             .clone()
             .then(op)
             .repeated()
@@ -168,9 +165,7 @@ pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>>
             .foldr(|(a, op), b| {
                 let span = a.1.start..b.1.end;
                 (Expr::Binary(Box::new(a), op, Box::new(b)), span)
-            });
-
-        assign
+            })
     })
 }
 
@@ -230,6 +225,16 @@ pub fn statement_parser() -> impl Parser<Token, Spanned<Statement>, Error = Simp
                     )
                 });
 
-        expr.or(return_).or(print).or(block).or(if_else)
+        let while_ = just(Token::While)
+            .ignore_then(expression.clone())
+            .then(statement.clone())
+            .map_with_span(|(cond, body), span| {
+                (
+                    Statement::While(Box::new(WhileStatement { cond, body })),
+                    span,
+                )
+            });
+
+        expr.or(return_).or(print).or(block).or(if_else).or(while_)
     })
 }
