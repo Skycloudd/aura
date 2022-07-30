@@ -60,6 +60,7 @@ impl Expr {
 pub enum UnaryOp {
     Pos,
     Neg,
+    Truncate,
 }
 
 #[derive(Clone, Debug)]

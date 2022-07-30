@@ -16,15 +16,18 @@ fn test_func(x, a, b, c) {
 
 fn main() {
     x = true;
-    a = 1;
-    b = 2;
-    c = 3;
+    a = 1.1;
+    b = 2.5;
+    c = 3.9;
 
-    result = test_func(x, a, b, c);
+    # demonstrate the ~ operator
+    # (truncates a decimal to an integer)
+    result = test_func(x, ~a, ~b, ~c);
 
     print result;
 
     print result == 9;
 
+    # decimals dont have weird floating point errors!
     print 0.1 + 0.2;
 }

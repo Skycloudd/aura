@@ -2,7 +2,7 @@ use crate::ast;
 use crate::lexer::Spanned;
 use crate::Error;
 use bigdecimal::BigDecimal;
-use num_bigint::BigInt;
+use num_bigint::{BigInt, ToBigInt};
 use std::collections::HashMap;
 use std::fmt;
 
@@ -215,6 +215,17 @@ fn eval_expression(
                     span: expr.1.clone(),
                     msg: format!(
                         "Unary operator '+' cannot be applied to {}",
+                        v.get_type_str()
+                    ),
+                }),
+            },
+            ast::UnaryOp::Truncate => match eval_expression(environment, e.as_ref())? {
+                AuraValue::Int(i) => Ok(AuraValue::Int(i)),
+                AuraValue::Decimal(d) => Ok(AuraValue::Int(d.to_bigint().unwrap())),
+                v => Err(Error {
+                    span: expr.1.clone(),
+                    msg: format!(
+                        "Unary operator '~' cannot be applied to {}",
                         v.get_type_str()
                     ),
                 }),
