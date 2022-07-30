@@ -303,6 +303,7 @@ fn eval_expression(
                 (AuraValue::Int(l), AuraValue::Int(r)) => Ok(AuraValue::Bool(l == r)),
                 (AuraValue::Decimal(l), AuraValue::Decimal(r)) => Ok(AuraValue::Bool(l == r)),
                 (AuraValue::Bool(l), AuraValue::Bool(r)) => Ok(AuraValue::Bool(l == r)),
+                (AuraValue::Null, AuraValue::Null) => Ok(AuraValue::Bool(true)),
                 (lhs_value, rhs_value) => Err(Error {
                     span: expr.1.clone(),
                     msg: format!(
@@ -319,6 +320,7 @@ fn eval_expression(
                 (AuraValue::Int(l), AuraValue::Int(r)) => Ok(AuraValue::Bool(l != r)),
                 (AuraValue::Decimal(l), AuraValue::Decimal(r)) => Ok(AuraValue::Bool(l != r)),
                 (AuraValue::Bool(l), AuraValue::Bool(r)) => Ok(AuraValue::Bool(l != r)),
+                (AuraValue::Null, AuraValue::Null) => Ok(AuraValue::Bool(false)),
                 (lhs_value, rhs_value) => Err(Error {
                     span: expr.1.clone(),
                     msg: format!(
