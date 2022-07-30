@@ -4,6 +4,7 @@ use crate::Error;
 use bigdecimal::BigDecimal;
 use num_bigint::BigInt;
 use std::collections::HashMap;
+use std::fmt;
 
 #[derive(Clone, Debug)]
 pub enum AuraValue {
@@ -20,6 +21,17 @@ impl AuraValue {
             AuraValue::Decimal(_) => "decimal",
             AuraValue::Bool(_) => "bool",
             AuraValue::Null => "null",
+        }
+    }
+}
+
+impl fmt::Display for AuraValue {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            AuraValue::Int(i) => write!(f, "{}", i),
+            AuraValue::Decimal(d) => write!(f, "{}", d),
+            AuraValue::Bool(b) => write!(f, "{}", b),
+            AuraValue::Null => write!(f, "null"),
         }
     }
 }
@@ -67,7 +79,12 @@ pub fn interpret(ast: &ast::Ast) -> Result<AuraValue, Error> {
 
 fn eval(environment: Environment, ast: &ast::Ast) -> Result<AuraValue, Error> {
     if let Some(main_func) = environment.get_function("main") {
-        eval_function(&environment, main_func, vec![])
+        let mut env = Environment {
+            functions: environment.functions.clone(),
+            variables: environment.variables.clone(),
+        };
+
+        eval_function(&mut env, main_func, vec![])
     } else {
         Err(Error {
             span: ast.1.clone(),
@@ -77,7 +94,7 @@ fn eval(environment: Environment, ast: &ast::Ast) -> Result<AuraValue, Error> {
 }
 
 fn eval_function(
-    environment: &Environment,
+    environment: &mut Environment,
     func: &Spanned<ast::Function>,
     with_args: Vec<AuraValue>,
 ) -> Result<AuraValue, Error> {
@@ -88,66 +105,79 @@ fn eval_function(
         });
     }
 
-    let mut env = Environment {
-        functions: environment.functions.clone(),
-        variables: HashMap::new(),
-    };
-
     for (arg, value) in func.0.args.0.iter().zip(with_args) {
-        env.set_variable(&arg.0.name.0, value);
+        environment.set_variable(&arg.0.name.0, value);
     }
 
-    match eval_statement(&env, &func.0.body) {
-        Ok(value) => match value {
-            Some(v) => Ok(v),
-            None => Ok(AuraValue::Null),
-        },
+    match eval_statement(environment, &func.0.body) {
+        Ok(Some(value)) => Ok(value),
+        Ok(None) => Ok(AuraValue::Null),
         Err(e) => Err(e),
     }
 }
 
 fn eval_statement(
-    environment: &Environment,
+    environment: &mut Environment,
     stmt: &Spanned<ast::Statement>,
 ) -> Result<Option<AuraValue>, Error> {
     match stmt.0.clone() {
         ast::Statement::Error => unreachable!("tried evaluating a Statement::Error"),
         ast::Statement::Block(statements) => {
-            let env = Environment {
+            let mut env = Environment {
                 functions: environment.functions.clone(),
                 variables: environment.variables.clone(),
             };
 
             for statement in &statements {
-                eval_statement(&env, statement)?;
+                match eval_statement(&mut env, statement)? {
+                    Some(v) => return Ok(Some(v)),
+                    None => continue,
+                }
             }
 
             Ok(None)
         }
         ast::Statement::Expr(expr) => {
-            eval_expression(&environment, &expr)?;
+            eval_expression(environment, &expr)?;
             Ok(None)
         }
-        ast::Statement::Return(expr) => {
-            todo!()
-        }
+        ast::Statement::Return(expr) => match expr {
+            Some(expr) => {
+                let value = eval_expression(environment, &expr)?;
+                Ok(Some(value))
+            }
+            None => Ok(None),
+        },
         ast::Statement::Print(expr) => {
-            todo!()
+            let value = eval_expression(environment, &expr)?;
+            println!("{}", value);
+            Ok(None)
         }
-        ast::Statement::If(condition, stmt) => {
-            todo!()
-        }
-        ast::Statement::Else(stmt) => {
-            todo!()
-        }
-        ast::Statement::IfElse(if_stmt, else_stmt) => {
-            todo!()
+        ast::Statement::IfElse(if_else_stmt) => {
+            let condition = eval_expression(environment, &if_else_stmt.if_stmt.0 .0)?;
+
+            let mut env = Environment {
+                functions: environment.functions.clone(),
+                variables: environment.variables.clone(),
+            };
+
+            match condition {
+                AuraValue::Bool(true) => eval_statement(&mut env, &if_else_stmt.if_stmt.0 .1),
+                AuraValue::Bool(false) => match &if_else_stmt.else_stmt {
+                    Some((s, _)) => eval_statement(&mut env, s),
+                    None => Ok(None),
+                },
+                _ => Err(Error {
+                    span: if_else_stmt.if_stmt.0 .0 .1.clone(),
+                    msg: "Condition must be a boolean".to_string(),
+                }),
+            }
         }
     }
 }
 
 fn eval_expression(
-    environment: &Environment,
+    environment: &mut Environment,
     expr: &Spanned<ast::Expr>,
 ) -> Result<AuraValue, Error> {
     match expr.0.clone() {
@@ -359,7 +389,9 @@ fn eval_expression(
             },
             ast::BinaryOp::Assign => match &lhs.as_ref().0 {
                 ast::Expr::Var(ident) => {
-                    todo!()
+                    let value = eval_expression(environment, rhs.as_ref())?;
+                    environment.set_variable(ident, value.clone());
+                    Ok(value)
                 }
                 e => Err(Error {
                     span: expr.1.clone(),
@@ -369,7 +401,7 @@ fn eval_expression(
         },
         ast::Expr::Call(e, params) => match &e.as_ref().0 {
             ast::Expr::Var(ident) => {
-                let func = &environment.get_function(&ident).ok_or_else(|| Error {
+                let func = environment.get_function(&ident).ok_or_else(|| Error {
                     span: expr.1.clone(),
                     msg: format!("Function '{}' not found", ident),
                 })?;
@@ -388,11 +420,16 @@ fn eval_expression(
 
                 let mut with_args = vec![];
                 for param in params.0.iter() {
-                    let value = eval_expression(&environment, param)?;
+                    let value = eval_expression(&mut environment.clone(), param)?;
                     with_args.push(value);
                 }
 
-                eval_function(&environment, func, with_args)
+                let mut env = Environment {
+                    functions: environment.functions.clone(),
+                    variables: HashMap::new(),
+                };
+
+                eval_function(&mut env, func, with_args)
             }
             e => Err(Error {
                 span: expr.1.clone(),

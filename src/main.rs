@@ -61,6 +61,8 @@ fn run(args: &Args) -> Result<(), Box<dyn error::Error>> {
                     if args.debug {
                         dbg!(val);
                     }
+
+                    // TODO: exit with exit code if int?
                 }
                 Err(e) => errs.push(Simple::custom(e.span, e.msg)),
             }

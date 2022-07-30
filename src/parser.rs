@@ -1,4 +1,4 @@
-use crate::ast::Ast;
+use crate::ast::{Ast, IfElseStatement};
 use crate::ast::{BinaryOp, Expr, Function, FunctionArg, Statement, UnaryOp, Value};
 use crate::lexer::{Spanned, Token};
 use crate::Span;
@@ -211,18 +211,18 @@ pub fn statement_parser() -> impl Parser<Token, Spanned<Statement>, Error = Simp
         let if_ = just(Token::If)
             .ignore_then(expression.clone())
             .then(statement.clone())
-            .map_with_span(|(cond, then), span| (Statement::If(cond, Box::new(then)), span));
+            .map_with_span(|(cond, then), span| ((cond, then), span));
 
         let else_ = just(Token::Else)
             .ignore_then(statement.clone())
-            .map_with_span(|then, span| (Statement::Else(Box::new(then)), span));
+            .map_with_span(|then, span| (then, span));
 
         let if_else =
             if_.clone()
                 .then(else_.clone().or_not())
                 .map_with_span(|(if_stmt, else_stmt), span| {
                     (
-                        Statement::IfElse(Box::new(if_stmt), Box::new(else_stmt)),
+                        Statement::IfElse(Box::new(IfElseStatement { if_stmt, else_stmt })),
                         span,
                     )
                 });

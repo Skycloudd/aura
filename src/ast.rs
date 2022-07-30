@@ -24,24 +24,13 @@ pub enum Statement {
     Expr(Spanned<Expr>),
     Return(Option<Spanned<Expr>>),
     Print(Spanned<Expr>),
-    If(Spanned<Expr>, Box<Spanned<Statement>>),
-    Else(Box<Spanned<Statement>>),
-    IfElse(Box<Spanned<Statement>>, Box<Option<Spanned<Statement>>>),
+    IfElse(Box<IfElseStatement>),
 }
 
-impl Statement {
-    pub fn get_type_str(&self) -> &'static str {
-        match self {
-            Statement::Error => "error",
-            Statement::Block(_) => "block",
-            Statement::Expr(_) => "expression",
-            Statement::Return(_) => "return statement",
-            Statement::Print(_) => "print statement",
-            Statement::If(_, _) => "if statement",
-            Statement::Else(_) => "else statement",
-            Statement::IfElse(_, _) => "if else statement",
-        }
-    }
+#[derive(Clone, Debug)]
+pub struct IfElseStatement {
+    pub if_stmt: Spanned<(Spanned<Expr>, Spanned<Statement>)>,
+    pub else_stmt: Option<Spanned<Spanned<Statement>>>,
 }
 
 #[derive(Clone, Debug)]
