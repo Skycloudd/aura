@@ -15,6 +15,9 @@ fn test_func(x, a, b, c) {
 }
 
 fn main() {
+    # decimals dont have weird floating point errors!
+    print 0.1 + 0.2;
+
     x = true;
     a = 1.1;
     b = 2.5;
@@ -28,6 +31,6 @@ fn main() {
 
     print result == 9;
 
-    # decimals dont have weird floating point errors!
-    print 0.1 + 0.2;
+    # exit code
+    return result;
 }

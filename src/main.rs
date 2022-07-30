@@ -1,8 +1,9 @@
-use crate::interpreter::interpret;
+use crate::interpreter::{interpret, AuraValue};
 use crate::lexer::lexer;
 use crate::lexer::Span;
 use crate::parser::parser;
 use ariadne::{Color, Fmt, Label, Report, ReportKind, Source};
+use bigdecimal::ToPrimitive;
 use chumsky::prelude::*;
 use chumsky::Parser as _;
 use chumsky::Stream;
@@ -59,10 +60,16 @@ fn run(args: &Args) -> Result<(), Box<dyn error::Error>> {
             match interpret(&ast) {
                 Ok(val) => {
                     if args.debug {
-                        dbg!(val);
+                        dbg!(&val);
                     }
 
-                    // TODO: exit with exit code if int?
+                    match &val {
+                        AuraValue::Int(n) => match n.to_i32() {
+                            Some(n) => process::exit(n),
+                            None => process::exit(1),
+                        },
+                        _ => process::exit(1),
+                    }
                 }
                 Err(e) => errs.push(Simple::custom(e.span, e.msg)),
             }
