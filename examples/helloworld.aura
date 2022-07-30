@@ -5,7 +5,7 @@ fn mul(a, b)
     return a * b;
 
 fn test_func(x, a, b, c) {
-    if (x == true) {
+    if x {
         val = mul(add(a, b), c);
         return val;
     } else {
@@ -24,10 +24,7 @@ fn main() {
 
     print result;
 
-    if result == 9
-        print true;
-    else
-        print false;
+    print result == 9;
 
     print 0.1 + 0.2;
 }
