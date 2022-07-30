@@ -219,6 +219,16 @@ fn eval_expression(
                     ),
                 }),
             },
+            ast::UnaryOp::Not => match eval_expression(environment, e.as_ref())? {
+                AuraValue::Bool(b) => Ok(AuraValue::Bool(!b)),
+                v => Err(Error {
+                    span: expr.1.clone(),
+                    msg: format!(
+                        "Unary operator '!' cannot be applied to {}",
+                        v.get_type_str()
+                    ),
+                }),
+            },
             ast::UnaryOp::Truncate => match eval_expression(environment, e.as_ref())? {
                 AuraValue::Int(i) => Ok(AuraValue::Int(i)),
                 AuraValue::Decimal(d) => Ok(AuraValue::Int(d.to_bigint().unwrap())),

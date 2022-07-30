@@ -91,6 +91,7 @@ pub fn expr_parser() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>>
         let op = just(Token::Op("-".to_string()))
             .to(UnaryOp::Neg)
             .or(just(Token::Op("+".to_string())).to(UnaryOp::Pos))
+            .or(just(Token::Op("!".to_string())).to(UnaryOp::Not))
             .or(just(Token::Op("~".to_string())).to(UnaryOp::Truncate))
             .map_with_span(|op, span: Span| (op, span));
 
