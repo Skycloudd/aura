@@ -1,0 +1,9 @@
+fn main() {
+    answer = 1 + 2 * 3;
+
+    if answer > 3 {
+        print answer;
+    } else {
+        print -answer;
+    }
+}
